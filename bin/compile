@@ -17,8 +17,15 @@ source $bp_dir/bin/common.sh
 # Output npm debug info on error
 trap cat_npm_debug_log ERR
 
+if [ -z "$BUILD_DIR_APPEND" ]; then
+  $build_dir_append = $BUILD_DIR_APPEND
+else
+  $build_dir_append = ''
+
+$package_json = $build_dir$build_dir_append/package.json
+
 # Look in package.json's engines.node field for a semver range
-semver_range=$(cat $build_dir/package.json | $bp_dir/vendor/jq -r .engines.node)
+semver_range=$(cat $package_json | $bp_dir/vendor/jq -r .engines.node)
 
 # Resolve node version using semver.io
 node_version=$(curl --silent --get --data-urlencode "range=${semver_range}" https://semver.io/node/resolve)
@@ -112,20 +119,20 @@ status "Cleaning up node-gyp and npm artifacts"
 rm -rf "$build_dir/.node-gyp"
 rm -rf "$build_dir/.npm"
 
-# If Procfile is absent, try to create one using `npm start`
-if [ ! -e $build_dir/Procfile ]; then
-  npm_start=$(cat $build_dir/package.json | $bp_dir/vendor/jq -r .scripts.start)
+# # If Procfile is absent, try to create one using `npm start`
+# if [ ! -e $build_dir/Procfile ]; then
+#   npm_start=$(cat $package_json | $bp_dir/vendor/jq -r .scripts.start)
 
-  # If `scripts.start` is set in package.json, or a server.js file
-  # is present in the app root, then create a default Procfile
-  if [ "$npm_start" != "null" ] || [ -f $build_dir/server.js ]; then
-    status "No Procfile found; Adding npm start to new Procfile"
-    echo "web: npm start" > $build_dir/Procfile
-  else
-    status "Procfile not found and npm start script is undefined"
-    protip "Create a Procfile or specify a start script in package.json"
-  fi
-fi
+#   # If `scripts.start` is set in package.json, or a server.js file
+#   # is present in the app root, then create a default Procfile
+#   if [ "$npm_start" != "null" ] || [ -f $build_dir/server.js ]; then
+#     status "No Procfile found; Adding npm start to new Procfile"
+#     echo "web: npm start" > $build_dir/Procfile
+#   else
+#     status "Procfile not found and npm start script is undefined"
+#     protip "Create a Procfile or specify a start script in package.json"
+#   fi
+# fi
 
 # Update the PATH
 status "Building runtime environment"
@@ -134,7 +141,7 @@ echo "export PATH=\"\$HOME/vendor/node/bin:\$HOME/bin:\$HOME/node_modules/.bin:\
 
 # Check and run gulp
 (
-  if [ -f $build_dir/gulpfile.js ]; then
+  if [ -f $build_dir$build_dir_append/gulpfile.js ]; then
     # get the env vars
     if [ -d "$env_dir" ]; then
       status "Exporting config vars to environment"
@@ -143,6 +150,9 @@ echo "export PATH=\"\$HOME/vendor/node/bin:\$HOME/bin:\$HOME/node_modules/.bin:\
 
     # Install gulp locally
     npm install gulp
+
+    cd $build_dir/$build_dir_append
+
     echo "-----> Found gulpfile, running gulp heroku:$NODE_ENV task"
     $build_dir/node_modules/.bin/gulp heroku:$NODE_ENV
   else
@@ -154,7 +164,7 @@ echo "export PATH=\"\$HOME/vendor/node/bin:\$HOME/bin:\$HOME/node_modules/.bin:\
 # Use a subshell so failures won't break the build.
 (
   curl \
-    --data @$build_dir/package.json \
+    --data @$package_json \
     --fail \
     --silent \
     --request POST \

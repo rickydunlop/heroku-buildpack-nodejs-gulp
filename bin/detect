@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 # bin/detect <build-dir>
 
-if [ -f $1/package.json ]; then
+if [ -z "$BUILD_DIR_APPEND" ]; then
+  $build_dir_append = $BUILD_DIR_APPEND
+else
+  $build_dir_append = ''
+
+if [ -f $1$build_dir_append/package.json ]; then
   echo "Node.js" && exit 0
 else
   echo "no" && exit 1
