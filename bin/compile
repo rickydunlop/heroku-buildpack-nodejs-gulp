@@ -24,9 +24,9 @@ fi
 
 
 if [ -n "$BUILD_DIR_APPEND" ]; then
-  build_dir_append = $BUILD_DIR_APPEND
+  build_dir_append="$BUILD_DIR_APPEND"
 else
-  build_dir_append = ''
+  build_dir_append=""
 fi
 
 $package_json = $build_dir$build_dir_append/package.json
