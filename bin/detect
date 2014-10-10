@@ -5,6 +5,7 @@ if [ -z "$BUILD_DIR_APPEND" ]; then
   $build_dir_append = $BUILD_DIR_APPEND
 else
   $build_dir_append = ''
+fi
 
 if [ -f $1$build_dir_append/package.json ]; then
   echo "Node.js" && exit 0
