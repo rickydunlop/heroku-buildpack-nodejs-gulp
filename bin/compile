@@ -22,9 +22,31 @@ if [ -d "$env_dir" ]; then
   export_env_dir $env_dir
 fi
 
-
 if [ -n "$BUILD_DIR_APPEND" ]; then
   build_dir="$build_dir$BUILD_DIR_APPEND"
+fi
+
+
+# install sass
+status "Installing Sass"
+export GEM_HOME=$build_dir/.gem/ruby/1.9.1
+PATH="$GEM_HOME/bin:$PATH"
+if test -d $cache_dir/ruby/.gem; then
+  status "Restoring ruby gems directory from cache"
+  cp -r $cache_dir/ruby/.gem $build_dir
+  HOME=$build_dir gem update sass --user-install --no-rdoc --no-ri
+else
+  HOME=$build_dir gem install sass --user-install --no-rdoc --no-ri
+fi
+
+# cache ruby gems sass
+rm -rf $cache_dir/ruby
+mkdir -p $cache_dir/ruby
+
+# If app has a gems directory, cache it.
+if test -d $build_dir/.gem; then
+  status "Caching ruby gems directory for future builds"
+  cp -r $build_dir/.gem $cache_dir/ruby
 fi
 
 package_json="$build_dir/package.json"
@@ -138,6 +160,7 @@ rm -rf "$build_dir/.npm"
 status "Building runtime environment"
 mkdir -p $build_dir/.profile.d
 echo "export PATH=\"\$HOME/vendor/node/bin:\$HOME/bin:\$HOME/node_modules/.bin:\$PATH\";" > $build_dir/.profile.d/nodejs.sh
+echo "export PATH=\"\$HOME/.gem/ruby/1.9.1/bin:\$PATH\"" > $build_dir/.profile.d/ruby.sh
 
 # Check and run gulp
 (
