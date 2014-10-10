@@ -29,7 +29,7 @@ else
   build_dir_append=""
 fi
 
-$package_json = $build_dir$build_dir_append/package.json
+package_json = "$build_dir$build_dir_append/package.json"
 
 # Look in package.json's engines.node field for a semver range
 semver_range=$(cat $package_json | $bp_dir/vendor/jq -r .engines.node)
