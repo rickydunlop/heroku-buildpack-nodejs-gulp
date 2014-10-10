@@ -24,12 +24,10 @@ fi
 
 
 if [ -n "$BUILD_DIR_APPEND" ]; then
-  build_dir_append="$BUILD_DIR_APPEND"
-else
-  build_dir_append=""
+  $build_dir="$build_dir$BUILD_DIR_APPEND"
 fi
 
-package_json="$build_dir$build_dir_append/package.json"
+package_json="$build_dir/package.json"
 
 # Look in package.json's engines.node field for a semver range
 semver_range=$(cat $package_json | $bp_dir/vendor/jq -r .engines.node)
@@ -143,7 +141,7 @@ echo "export PATH=\"\$HOME/vendor/node/bin:\$HOME/bin:\$HOME/node_modules/.bin:\
 
 # Check and run gulp
 (
-  if [ -f $build_dir$build_dir_append/gulpfile.js ]; then
+  if [ -f $build_dir/gulpfile.js ]; then
     # get the env vars
     if [ -d "$env_dir" ]; then
       status "Exporting config vars to environment"
@@ -152,8 +150,6 @@ echo "export PATH=\"\$HOME/vendor/node/bin:\$HOME/bin:\$HOME/node_modules/.bin:\
 
     # Install gulp locally
     npm install gulp
-
-    cd $build_dir/$build_dir_append
 
     echo "-----> Found gulpfile, running gulp heroku:$NODE_ENV task"
     $build_dir/node_modules/.bin/gulp heroku:$NODE_ENV
