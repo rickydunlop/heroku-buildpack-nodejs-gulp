@@ -17,7 +17,13 @@ source $bp_dir/bin/common.sh
 # Output npm debug info on error
 trap cat_npm_debug_log ERR
 
-if [ -z "$BUILD_DIR_APPEND" ]; then
+if [ -d "$env_dir" ]; then
+  status "Exporting config vars to environment"
+  export_env_dir $env_dir
+fi
+
+
+if [ -n "$BUILD_DIR_APPEND" ]; then
   $build_dir_append = $BUILD_DIR_APPEND
 else
   $build_dir_append = ''
@@ -85,11 +91,6 @@ fi
 
 # Scope config var availability only to `npm install`
 (
-  if [ -d "$env_dir" ]; then
-    status "Exporting config vars to environment"
-    export_env_dir $env_dir
-  fi
-
   status "Installing dependencies"
   # Make npm output to STDOUT instead of its default STDERR
   npm install --userconfig $build_dir/.npmrc --production 2>&1 | indent
