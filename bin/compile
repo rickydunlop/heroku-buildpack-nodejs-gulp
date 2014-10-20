@@ -187,6 +187,8 @@ echo "export PATH=\"\$HOME/.gem/ruby/1.9.1/bin:\$PATH\"" > $build_dir/.profile.d
   fi
 )
 
+rm -rf $build_dir/node_modules
+
 # Post package.json to nomnom service
 # Use a subshell so failures won't break the build.
 (
